@@ -110,34 +110,104 @@ local function createWindow(title, content)
     end)
 end
 
--- 4. Загрузка приложения с GitHub
-local function loadAppFromGitHub(url)
-    local success, response = pcall(function()
-        return HttpService:GetAsync(url)
-    end)
-    if success then
-        return response
-    else
-        warn("Ошибка загрузки приложения: " .. response)
-        return nil
+-- 4. Секция: Калькулятор
+local function createCalculator()
+    local calculatorFrame = Instance.new("Frame")
+    calculatorFrame.Size = UDim2.new(1, 0, 1, 0)
+    calculatorFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+
+    local display = Instance.new("TextLabel")
+    display.Size = UDim2.new(1, 0, 0, 30)
+    display.Text = "0"
+    display.TextColor3 = Color3.new(1, 1, 1)
+    display.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    display.Parent = calculatorFrame
+
+    local buttons = {
+        {"7", "8", "9", "+"},
+        {"4", "5", "6", "-"},
+        {"1", "2", "3", "*"},
+        {"C", "0", "=", "/"}
+    }
+
+    for row = 1, #buttons do
+        for col = 1, #buttons[row] do
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(0.25, 0, 0.2, 0)
+            button.Position = UDim2.new((col - 1) * 0.25, 0, (row - 1) * 0.2 + 0.3, 0)
+            button.Text = buttons[row][col]
+            button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+            button.TextColor3 = Color3.new(1, 1, 1)
+            button.Parent = calculatorFrame
+
+            button.MouseButton1Click:Connect(function()
+                if button.Text == "C" then
+                    display.Text = "0"
+                elseif button.Text == "=" then
+                    display.Text = tostring(loadstring("return " .. display.Text)())
+                else
+                    if display.Text == "0" then
+                        display.Text = button.Text
+                    else
+                        display.Text = display.Text .. button.Text
+                    end
+                end
+            end)
+        end
     end
+
+    createWindow("Калькулятор", calculatorFrame)
 end
 
--- 5. Установка приложения
-local function installApp(code)
-    local success, result = pcall(function()
-        loadstring(code)()
+-- 5. Секция: Rochome (браузер)
+local function createRochome()
+    local rochromeFrame = Instance.new("Frame")
+    rochromeFrame.Size = UDim2.new(1, 0, 1, 0)
+    rochromeFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+
+    local addressBar = Instance.new("TextBox")
+    addressBar.Size = UDim2.new(1, 0, 0, 30)
+    addressBar.PlaceholderText = "Введите URL"
+    addressBar.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    addressBar.TextColor3 = Color3.new(1, 1, 1)
+    addressBar.Font = Enum.Font.SourceSans
+    addressBar.TextSize = 16
+    addressBar.Parent = rochromeFrame
+
+    local contentFrame = Instance.new("ScrollingFrame")
+    contentFrame.Size = UDim2.new(1, 0, 1, -30)
+    contentFrame.Position = UDim2.new(0, 0, 0, 30)
+    contentFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    contentFrame.Parent = rochromeFrame
+
+    local contentText = Instance.new("TextLabel")
+    contentText.Size = UDim2.new(1, 0, 0, 0)
+    contentText.Text = "Добро пожаловать в Rochome!"
+    contentText.TextColor3 = Color3.new(1, 1, 1)
+    contentText.BackgroundTransparency = 1
+    contentText.TextWrapped = true
+    contentText.Font = Enum.Font.SourceSans
+    contentText.TextSize = 16
+    contentText.Parent = contentFrame
+
+    addressBar.FocusLost:Connect(function()
+        local url = addressBar.Text
+        if url ~= "" then
+            local success, response = pcall(function()
+                return HttpService:GetAsync(url)
+            end)
+            if success then
+                contentText.Text = response
+            else
+                contentText.Text = "Ошибка загрузки страницы: " .. response
+            end
+        end
     end)
-    if success then
-        print("Приложение успешно установлено!")
-        return true
-    else
-        warn("Ошибка установки приложения: " .. result)
-        return false
-    end
+
+    createWindow("Rochome", rochromeFrame)
 end
 
--- 6. Приложение RBLOX Market
+-- 6. Секция: RBLOX Market
 local function createMarketApp()
     local marketFrame = Instance.new("Frame")
     marketFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -149,96 +219,42 @@ local function createMarketApp()
     scroll.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
     scroll.Parent = marketFrame
 
-    -- Пример приложения: Калькулятор
-    local appFrame = Instance.new("Frame")
-    appFrame.Size = UDim2.new(1, -20, 0, 50)
-    appFrame.Position = UDim2.new(0, 10, 0, 10)
-    appFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-    appFrame.Parent = scroll
+    -- Кнопка для калькулятора
+    local calculatorApp = Instance.new("Frame")
+    calculatorApp.Size = UDim2.new(1, -20, 0, 50)
+    calculatorApp.Position = UDim2.new(0, 10, 0, 10)
+    calculatorApp.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    calculatorApp.Parent = scroll
 
-    local appName = Instance.new("TextLabel")
-    appName.Size = UDim2.new(0.7, 0, 1, 0)
-    appName.Text = "Калькулятор"
-    appName.TextColor3 = Color3.new(1, 1, 1)
-    appName.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
-    appName.Font = Enum.Font.SourceSans
-    appName.TextSize = 16
-    appName.Parent = appFrame
+    local calculatorName = Instance.new("TextLabel")
+    calculatorName.Size = UDim2.new(0.7, 0, 1, 0)
+    calculatorName.Text = "Калькулятор"
+    calculatorName.TextColor3 = Color3.new(1, 1, 1)
+    calculatorName.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+    calculatorName.Font = Enum.Font.SourceSans
+    calculatorName.TextSize = 16
+    calculatorName.Parent = calculatorApp
 
-    local installButton = Instance.new("TextButton")
-    installButton.Size = UDim2.new(0.2, 0, 1, 0)
-    installButton.Position = UDim2.new(0.8, 0, 0, 0)
-    installButton.Text = "Установить"
-    installButton.TextColor3 = Color3.new(1, 1, 1)
-    installButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
-    installButton.Font = Enum.Font.SourceSans
-    installButton.TextSize = 16
-    installButton.Parent = appFrame
+    local installCalculatorButton = Instance.new("TextButton")
+    installCalculatorButton.Size = UDim2.new(0.2, 0, 1, 0)
+    installCalculatorButton.Position = UDim2.new(0.8, 0, 0, 0)
+    installCalculatorButton.Text = "Установить"
+    installCalculatorButton.TextColor3 = Color3.new(1, 1, 1)
+    installCalculatorButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
+    installCalculatorButton.Font = Enum.Font.SourceSans
+    installCalculatorButton.TextSize = 16
+    installCalculatorButton.Parent = calculatorApp
 
-    installButton.MouseButton1Click:Connect(function()
-        local url = "https://raw.githubusercontent.com/Aisen11394/Computer/main/Apps/Calculator.lua"
-        local code = loadAppFromGitHub(url)
-        if code then
-            local success = installApp(code)
-            if success then
-                -- Создаём окно калькулятора
-                local calculatorFrame = Instance.new("Frame")
-                calculatorFrame.Size = UDim2.new(1, 0, 1, 0)
-                calculatorFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-
-                local display = Instance.new("TextLabel")
-                display.Size = UDim2.new(1, 0, 0, 30)
-                display.Text = "0"
-                display.TextColor3 = Color3.new(1, 1, 1)
-                display.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-                display.Parent = calculatorFrame
-
-                local buttons = {
-                    {"7", "8", "9", "+"},
-                    {"4", "5", "6", "-"},
-                    {"1", "2", "3", "*"},
-                    {"C", "0", "=", "/"}
-                }
-
-                for row = 1, #buttons do
-                    for col = 1, #buttons[row] do
-                        local button = Instance.new("TextButton")
-                        button.Size = UDim2.new(0.25, 0, 0.2, 0)
-                        button.Position = UDim2.new((col - 1) * 0.25, 0, (row - 1) * 0.2 + 0.3, 0)
-                        button.Text = buttons[row][col]
-                        button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-                        button.TextColor3 = Color3.new(1, 1, 1)
-                        button.Parent = calculatorFrame
-
-                        button.MouseButton1Click:Connect(function()
-                            if button.Text == "C" then
-                                display.Text = "0"
-                            elseif button.Text == "=" then
-                                display.Text = tostring(loadstring("return " .. display.Text)())
-                            else
-                                if display.Text == "0" then
-                                    display.Text = button.Text
-                                else
-                                    display.Text = display.Text .. button.Text
-                                end
-                            end
-                        end)
-                    end
-                end
-
-                createWindow("Калькулятор", calculatorFrame)
-            end
-        else
-            warn("Не удалось загрузить приложение.")
-        end
+    installCalculatorButton.MouseButton1Click:Connect(function()
+        createCalculator()
     end)
 
-    -- Пример приложения: Rochome (браузер)
-    local rochromeFrame = Instance.new("Frame")
-    rochromeFrame.Size = UDim2.new(1, -20, 0, 50)
-    rochromeFrame.Position = UDim2.new(0, 10, 0, 70)
-    rochromeFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-    rochromeFrame.Parent = scroll
+    -- Кнопка для Rochome
+    local rochromeApp = Instance.new("Frame")
+    rochromeApp.Size = UDim2.new(1, -20, 0, 50)
+    rochromeApp.Position = UDim2.new(0, 10, 0, 70)
+    rochromeApp.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    rochromeApp.Parent = scroll
 
     local rochromeName = Instance.new("TextLabel")
     rochromeName.Size = UDim2.new(0.7, 0, 1, 0)
@@ -247,7 +263,7 @@ local function createMarketApp()
     rochromeName.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
     rochromeName.Font = Enum.Font.SourceSans
     rochromeName.TextSize = 16
-    rochromeName.Parent = rochromeFrame
+    rochromeName.Parent = rochromeApp
 
     local installRochomeButton = Instance.new("TextButton")
     installRochomeButton.Size = UDim2.new(0.2, 0, 1, 0)
@@ -257,63 +273,10 @@ local function createMarketApp()
     installRochomeButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
     installRochomeButton.Font = Enum.Font.SourceSans
     installRochomeButton.TextSize = 16
-    installRochomeButton.Parent = rochromeFrame
+    installRochomeButton.Parent = rochromeApp
 
     installRochomeButton.MouseButton1Click:Connect(function()
-        local url = "https://raw.githubusercontent.com/Aisen11394/Computer/main/Apps/Rochome.lua"
-        local code = loadAppFromGitHub(url)
-        if code then
-            local success = installApp(code)
-            if success then
-                -- Создаём окно Rochome
-                local rochromeWindow = Instance.new("Frame")
-                rochromeWindow.Size = UDim2.new(1, 0, 1, 0)
-                rochromeWindow.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-
-                local addressBar = Instance.new("TextBox")
-                addressBar.Size = UDim2.new(1, 0, 0, 30)
-                addressBar.PlaceholderText = "Введите URL"
-                addressBar.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-                addressBar.TextColor3 = Color3.new(1, 1, 1)
-                addressBar.Font = Enum.Font.SourceSans
-                addressBar.TextSize = 16
-                addressBar.Parent = rochromeWindow
-
-                local contentFrame = Instance.new("ScrollingFrame")
-                contentFrame.Size = UDim2.new(1, 0, 1, -30)
-                contentFrame.Position = UDim2.new(0, 0, 0, 30)
-                contentFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-                contentFrame.Parent = rochromeWindow
-
-                local contentText = Instance.new("TextLabel")
-                contentText.Size = UDim2.new(1, 0, 0, 0)
-                contentText.Text = "Добро пожаловать в Rochome!"
-                contentText.TextColor3 = Color3.new(1, 1, 1)
-                contentText.BackgroundTransparency = 1
-                contentText.TextWrapped = true
-                contentText.Font = Enum.Font.SourceSans
-                contentText.TextSize = 16
-                contentText.Parent = contentFrame
-
-                addressBar.FocusLost:Connect(function()
-                    local url = addressBar.Text
-                    if url ~= "" then
-                        local success, response = pcall(function()
-                            return HttpService:GetAsync(url)
-                        end)
-                        if success then
-                            contentText.Text = response
-                        else
-                            contentText.Text = "Ошибка загрузки страницы: " .. response
-                        end
-                    end
-                end)
-
-                createWindow("Rochome", rochromeWindow)
-            end
-        else
-            warn("Не удалось загрузить приложение.")
-        end
+        createRochome()
     end)
 
     -- Кнопка для добавления приложений
@@ -407,11 +370,13 @@ local function createMarketApp()
                 installButton.Parent = newAppFrame
 
                 installButton.MouseButton1Click:Connect(function()
-                    local success = installApp(appCode)
+                    local success, err = pcall(function()
+                        loadstring(appCode)()
+                    end)
                     if success then
                         print("Приложение успешно установлено!")
                     else
-                        warn("Ошибка установки приложения.")
+                        warn("Ошибка установки приложения: " .. err)
                     end
                 end)
 
