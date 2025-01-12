@@ -15,7 +15,58 @@ desktop.Size = UDim2.new(1, 0, 1, 0)
 desktop.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 desktop.Parent = screenGui
 
--- 2. Функция создания окон
+-- 2. Консоль
+local consoleFrame = Instance.new("Frame")
+consoleFrame.Size = UDim2.new(1, 0, 0, 150)
+consoleFrame.Position = UDim2.new(0, 0, 1, -150)
+consoleFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+consoleFrame.Parent = desktop
+
+local consoleScroll = Instance.new("ScrollingFrame")
+consoleScroll.Size = UDim2.new(1, 0, 1, 0)
+consoleScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+consoleScroll.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+consoleScroll.Parent = consoleFrame
+
+local consoleText = Instance.new("TextLabel")
+consoleText.Size = UDim2.new(1, 0, 0, 0)
+consoleText.Text = ""
+consoleText.TextColor3 = Color3.new(1, 1, 1)
+consoleText.BackgroundTransparency = 1
+consoleText.TextXAlignment = Enum.TextXAlignment.Left
+consoleText.TextYAlignment = Enum.TextYAlignment.Top
+consoleText.TextWrapped = true
+consoleText.Font = Enum.Font.SourceSans
+consoleText.TextSize = 14
+consoleText.Parent = consoleScroll
+
+-- Функция для добавления сообщений в консоль
+local function logToConsole(message, color)
+    local timestamp = os.date("%H:%M:%S")
+    local formattedMessage = string.format("[%s] %s\n", timestamp, tostring(message))
+    consoleText.Text = consoleText.Text .. formattedMessage
+    consoleText.TextColor3 = color or Color3.new(1, 1, 1)
+    consoleScroll.CanvasSize = UDim2.new(0, 0, 0, consoleText.TextBounds.Y)
+    consoleScroll.CanvasPosition = Vector2.new(0, consoleText.TextBounds.Y)
+end
+
+-- Переопределяем функции print и warn
+local originalPrint = print
+local originalWarn = warn
+
+print = function(...)
+    local message = table.concat({...}, " ")
+    logToConsole(message, Color3.new(1, 1, 1))  -- Белый цвет для print
+    originalPrint(...)
+end
+
+warn = function(...)
+    local message = table.concat({...}, " ")
+    logToConsole(message, Color3.new(1, 0, 0))  -- Красный цвет для warn
+    originalWarn(...)
+end
+
+-- 3. Функция создания окон
 local function createWindow(title, content)
     local window = Instance.new("Frame")
     window.Size = UDim2.new(0, 400, 0, 300)
@@ -59,7 +110,7 @@ local function createWindow(title, content)
     end)
 end
 
--- 3. Загрузка приложения с GitHub
+-- 4. Загрузка приложения с GitHub
 local function loadAppFromGitHub(url)
     local success, response = pcall(function()
         return HttpService:GetAsync(url)
@@ -72,7 +123,7 @@ local function loadAppFromGitHub(url)
     end
 end
 
--- 4. Установка приложения
+-- 5. Установка приложения
 local function installApp(code)
     local success, result = pcall(function()
         loadstring(code)()
@@ -86,7 +137,7 @@ local function installApp(code)
     end
 end
 
--- 5. Приложение RBLOX Market
+-- 6. Приложение RBLOX Market
 local function createMarketApp()
     local marketFrame = Instance.new("Frame")
     marketFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -176,6 +227,89 @@ local function createMarketApp()
                 end
 
                 createWindow("Калькулятор", calculatorFrame)
+            end
+        else
+            warn("Не удалось загрузить приложение.")
+        end
+    end)
+
+    -- Пример приложения: Rochome (браузер)
+    local rochromeFrame = Instance.new("Frame")
+    rochromeFrame.Size = UDim2.new(1, -20, 0, 50)
+    rochromeFrame.Position = UDim2.new(0, 10, 0, 70)
+    rochromeFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    rochromeFrame.Parent = scroll
+
+    local rochromeName = Instance.new("TextLabel")
+    rochromeName.Size = UDim2.new(0.7, 0, 1, 0)
+    rochromeName.Text = "Rochome"
+    rochromeName.TextColor3 = Color3.new(1, 1, 1)
+    rochromeName.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+    rochromeName.Font = Enum.Font.SourceSans
+    rochromeName.TextSize = 16
+    rochromeName.Parent = rochromeFrame
+
+    local installRochomeButton = Instance.new("TextButton")
+    installRochomeButton.Size = UDim2.new(0.2, 0, 1, 0)
+    installRochomeButton.Position = UDim2.new(0.8, 0, 0, 0)
+    installRochomeButton.Text = "Установить"
+    installRochomeButton.TextColor3 = Color3.new(1, 1, 1)
+    installRochomeButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
+    installRochomeButton.Font = Enum.Font.SourceSans
+    installRochomeButton.TextSize = 16
+    installRochomeButton.Parent = rochromeFrame
+
+    installRochomeButton.MouseButton1Click:Connect(function()
+        local url = "https://raw.githubusercontent.com/Aisen11394/Computer/main/Apps/Rochome.lua"
+        local code = loadAppFromGitHub(url)
+        if code then
+            local success = installApp(code)
+            if success then
+                -- Создаём окно Rochome
+                local rochromeWindow = Instance.new("Frame")
+                rochromeWindow.Size = UDim2.new(1, 0, 1, 0)
+                rochromeWindow.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+
+                local addressBar = Instance.new("TextBox")
+                addressBar.Size = UDim2.new(1, 0, 0, 30)
+                addressBar.PlaceholderText = "Введите URL"
+                addressBar.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+                addressBar.TextColor3 = Color3.new(1, 1, 1)
+                addressBar.Font = Enum.Font.SourceSans
+                addressBar.TextSize = 16
+                addressBar.Parent = rochromeWindow
+
+                local contentFrame = Instance.new("ScrollingFrame")
+                contentFrame.Size = UDim2.new(1, 0, 1, -30)
+                contentFrame.Position = UDim2.new(0, 0, 0, 30)
+                contentFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+                contentFrame.Parent = rochromeWindow
+
+                local contentText = Instance.new("TextLabel")
+                contentText.Size = UDim2.new(1, 0, 0, 0)
+                contentText.Text = "Добро пожаловать в Rochome!"
+                contentText.TextColor3 = Color3.new(1, 1, 1)
+                contentText.BackgroundTransparency = 1
+                contentText.TextWrapped = true
+                contentText.Font = Enum.Font.SourceSans
+                contentText.TextSize = 16
+                contentText.Parent = contentFrame
+
+                addressBar.FocusLost:Connect(function()
+                    local url = addressBar.Text
+                    if url ~= "" then
+                        local success, response = pcall(function()
+                            return HttpService:GetAsync(url)
+                        end)
+                        if success then
+                            contentText.Text = response
+                        else
+                            contentText.Text = "Ошибка загрузки страницы: " .. response
+                        end
+                    end
+                end)
+
+                createWindow("Rochome", rochromeWindow)
             end
         else
             warn("Не удалось загрузить приложение.")
@@ -292,7 +426,7 @@ local function createMarketApp()
     createWindow("RBLOX Market", marketFrame)
 end
 
--- 6. Меню "Пуск"
+-- 7. Меню "Пуск"
 local taskbar = Instance.new("Frame")
 taskbar.Size = UDim2.new(1, 0, 0, 40)
 taskbar.Position = UDim2.new(0, 0, 1, -40)
